@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>约会信息查看</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: "PingFang SC", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+      background-color: #FFF5F7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="w-[320px] bg-white rounded-[24px] shadow-[0_8px_32px_rgba(255,107,129,0.15)] p-8 mx-auto text-center">
+    <div id="loading" class="flex flex-col items-center gap-4">
+      <div class="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+      <p class="text-gray-500">加载中...</p>
+    </div>
+    <div id="error" class="hidden flex flex-col items-center gap-4">
+      <div class="text-5xl">😅</div>
+      <p id="errorMsg" class="text-gray-500"></p>
+    </div>
+    <div id="result" class="hidden flex flex-col items-center gap-6">
+      <div class="text-5xl">🥰</div>
+      <p class="text-lg font-bold text-[#333333]">约会信息</p>
+      <div class="w-full p-4 bg-[#FFF5F7] rounded-2xl border border-[#FF6B81]/10">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-[#FF6B81]">📅</span>
+          <span id="displayDate" class="text-[#333333] text-sm"></span>
+        </div>
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-[#FF6B81]">⏰</span>
+          <span id="displayTime" class="text-[#333333] text-sm"></span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-[#FF6B81]">🍽️</span>
+          <span id="displayFood" class="text-[#333333] text-sm"></span>
+        </div>
+      </div>
+      <p class="text-[#FF6B81] text-sm">期待和你见面！❤️</p>
+      <a href="https://dating-with-me-zzb.vercel.app" class="px-6 py-2.5 bg-[#FF6B81] text-white rounded-full text-sm font-bold shadow-md hover:brightness-110 no-underline">
+        我也要约会 💕
+      </a>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var loading = document.getElementById('loading');
+      var error = document.getElementById('error');
+      var errorMsg = document.getElementById('errorMsg');
+      var result = document.getElementById('result');
+
+      var params = new URLSearchParams(window.location.search);
+      var id = params.get('id');
+
+      if (!id) {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        errorMsg.textContent = '缺少约会ID，请从分享链接打开。';
+        return;
+      }
+
+      fetch('/api/view?id=' + encodeURIComponent(id))
+        .then(function(r) {
+          if (!r.ok) throw new Error('未找到约会信息');
+          return r.json();
+        })
+        .then(function(data) {
+          loading.classList.add('hidden');
+          result.classList.remove('hidden');
+
+          var d = new Date(data.date + 'T' + data.time);
+          var month = d.getMonth() + 1;
+          var day = d.getDate();
+
+          document.getElementById('displayDate').textContent = month + '月' + day + '日';
+          document.getElementById('displayTime').textContent = data.time;
+          document.getElementById('displayFood').textContent = data.food;
+        })
+        .catch(function(err) {
+          loading.classList.add('hidden');
+          error.classList.remove('hidden');
+          errorMsg.textContent = err.message || '加载失败，请稍后重试。';
+        });
+    })();
+  </script>
+</body>
+</html>
